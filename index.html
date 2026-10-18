@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171b20">
+  <meta name="description" content="LevelSeed — генератор больших игровых карт с BSP, клеточным автоматом и Random Walk. Наблюдайте алгоритмы по шагам и экспортируйте уровни до 256 × 160 клеток.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="LevelSeed — машина игровых миров">
+  <meta property="og:description" content="Создавайте большие детерминированные уровни, наблюдайте за ходом алгоритмов и сохраняйте карты в PNG или JSON.">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:locale:alternate" content="en_US">
+  <title>LevelSeed — машина игровых миров</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23171b20'/%3E%3Cpath d='M16 5v22M5 16h22M8 8l16 16M24 8 8 24' stroke='%23d6f36a' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "LevelSeed",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Any",
+    "inLanguage": ["ru", "en"],
+    "description": "A browser-based procedural map generator with BSP, cellular automata, random walk, and step-by-step algorithm visualization."
+  }
+  </script>
+</head>
+<body>
+  <main class="workbench">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="LevelSeed — на главную">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>LEVEL<span class="brand-light">SEED</span></span>
+      </a>
+      <div class="machine-status"><span class="status-lamp"></span><span>СИСТЕМА ГОТОВА</span><span class="status-divider"></span><span id="levelNumber">МИР 001</span></div>
+      <a class="top-link" href="#generator">Генератор <span aria-hidden="true">↘</span></a>
+    </header>
+
+    <section class="intro" aria-labelledby="pageTitle">
+      <div class="intro-copy">
+        <p class="eyebrow"><span class="eyebrow-line"></span> ПРОЦЕДУРНАЯ МАШИНА МИРОВ</p>
+        <h1 id="pageTitle">Одно зерно.<br><span>Целый мир.</span></h1>
+        <p class="intro-text">Каждое зерно хранит свой маршрут. Настрой параметры, зафиксируй результат и возвращайся к нему когда угодно.</p>
+      </div>
+      <div class="intro-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="seed-core"><span>LS</span><i></i><i></i><i></i><i></i></div>
+        <span class="orbit-label orbit-label-top">WORLD<br>BUILDER</span>
+        <span class="orbit-label orbit-label-bottom">RNG / 01</span>
+      </div>
+    </section>
+
+    <section class="machine" id="generator" aria-label="Генератор уровня">
+      <div class="map-side">
+        <div class="section-heading">
+          <div><p class="micro-label">ТЕКУЩИЙ РЕЗУЛЬТАТ</p><h2>Карта уровня</h2></div>
+          <div class="map-actions">
+            <button class="icon-button" id="favoriteButton" type="button" aria-label="Добавить в избранное" title="В избранное"><span class="star-icon">☆</span></button>
+            <button class="icon-button" id="downloadButton" type="button" aria-label="Скачать карту в PNG" title="Скачать PNG"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m0 0 4-4m-4 4L6 8M3 13v4h14v-4"/></svg></button>
+            <button class="icon-button" id="jsonButton" type="button" aria-label="Экспортировать данные уровня в JSON" title="Экспорт JSON"><span class="json-icon">{ }</span></button>
+          </div>
+        </div>
+        <div class="map-frame">
+          <div class="map-meta"><span><i class="live-dot"></i> <span id="biomeReadout">ЗАРОСШИЙ ХРАМ</span></span><span id="sizeReadout">28 × 18</span></div>
+          <div class="canvas-wrap"><canvas id="levelMap" role="img" aria-label="Сгенерированная карта игрового подземелья"></canvas></div>
+          <div class="map-zoom"><label for="zoomSlider">МАСШТАБ</label><input id="zoomSlider" type="range" min="50" max="180" value="100"><output id="zoomValue" for="zoomSlider">100%</output></div>
+          <div class="map-legend" aria-label="Легенда карты">
+            <span><i class="legend-swatch swatch-floor"></i>пол</span><span><i class="legend-swatch swatch-wall"></i>стена</span><span><i class="legend-swatch swatch-hazard"></i>опасность</span><span><i class="legend-swatch swatch-start"></i>вход</span><span><i class="legend-swatch swatch-exit"></i>выход</span>
+          </div>
+        </div>
+        <section class="algorithm-trace" aria-label="Ход алгоритма генерации">
+          <div class="trace-heading"><div><p class="micro-label">ПОД КАПОТОМ</p><h3 id="traceTitle">Как строится этот мир</h3></div><div class="trace-actions"><button id="traceReplay" type="button" title="Повторить генерацию" aria-label="Повторить показ алгоритма">↺</button><button id="traceNext" type="button" title="Следующий шаг">Шаг <span>›</span></button></div></div>
+          <div class="trace-progress"><span id="traceProgress"></span></div>
+          <div class="trace-current"><span id="traceStage">ОЖИДАНИЕ</span><p id="traceDescription">Выберите алгоритм, чтобы увидеть, как он собирает уровень.</p></div>
+          <ol id="algorithmCode" class="algorithm-code"></ol>
+        </section>
+        <div class="map-footer">
+          <div class="world-stats"><span><b id="primaryCount">—</b><small id="primaryLabel">КОМНАТЫ</small></span><span><b id="relicCount">—</b><small>РЕЛИКВИИ</small></span><span><b id="dangerCount">—</b><small>ОПАСНОСТИ</small></span></div>
+          <div class="map-key"><kbd>⏎</kbd> новый мир</div>
+        </div>
+      </div>
+
+      <aside class="control-side" aria-label="Параметры генерации">
+        <div class="control-head"><div><p class="micro-label">НАСТРОЙКИ ГЕНЕРАЦИИ</p><h2>Задать параметры</h2></div><span class="control-index">01 / 03</span></div>
+
+        <label class="field-label" for="seedInput">Зерно генерации <span class="label-note">SEED</span></label>
+        <div class="seed-control"><input id="seedInput" type="text" maxlength="20" spellcheck="false" autocomplete="off" aria-describedby="seedHelp"><button id="randomSeed" class="dice-button" type="button" aria-label="Случайное зерно" title="Случайное зерно">⟳</button></div>
+        <p class="field-help" id="seedHelp">Одинаковое зерно всегда создаёт одинаковую карту.</p>
+
+        <div class="field-group">
+          <label class="field-label" for="algorithmSelect">Алгоритм</label>
+          <select id="algorithmSelect">
+            <option value="bsp">BSP · разделение на области</option>
+            <option value="cellular">Клеточный автомат · пещера</option>
+            <option value="walker">Random walk · прокладка пути</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="biomeSelect">Биом</label>
+          <select id="biomeSelect">
+            <option value="grove">Заросший храм</option>
+            <option value="foundry">Медная кузня</option>
+            <option value="glacier">Синий разлом</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <div class="slider-label"><label class="field-label" for="densitySlider"><span id="densityLabel">Плотность комнат</span></label><output id="densityValue" for="densitySlider">9</output></div>
+          <input id="densitySlider" class="range" type="range" min="5" max="15" value="9">
+          <div class="range-captions"><span id="densityLow">МЕНЬШЕ</span><span id="densityHigh">БОЛЬШЕ</span></div>
+        </div>
+
+        <div class="field-group field-row">
+          <div><label class="field-label" for="sizeSelect">Размер карты</label><select id="sizeSelect"><option value="small">Малая · 22 × 15</option><option value="standard" selected>Стандартная · 28 × 18</option><option value="large">Большая · 64 × 40</option><option value="vast">Огромная · 96 × 64</option><option value="colossal">Колоссальная · 160 × 96</option><option value="giant">Гигантская · 256 × 160</option></select></div>
+          <div><label class="field-label" for="dangerSelect">Опасность</label><select id="dangerSelect"><option value="calm">Спокойно</option><option value="tense" selected>Напряжённо</option><option value="brutal">Жёстко</option></select></div>
+        </div>
+
+        <button id="generateButton" class="generate-button" type="button"><span class="generate-glyph" aria-hidden="true">✳</span><span>СОЗДАТЬ НОВЫЙ МИР</span><kbd>ENTER</kbd></button>
+        <button id="shareButton" class="share-button" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 10h6m-3-3v6M7.5 4.5h-3v11h11v-3"/><path d="M11 4h5v5m0-5-7 7"/></svg> Скопировать ссылку на этот мир</button>
+
+        <div class="favorites" id="favoritesBlock">
+          <div class="favorites-heading"><h3>ЗАКЛАДКИ</h3><span id="favoriteTotal">0 / 8</span></div>
+          <div id="favoritesList" class="favorites-list"><p class="empty-favorites">Сохрани карту, чтобы быстро вернуться к ней.</p></div>
+        </div>
+      </aside>
+    </section>
+    <footer class="page-footer"><span>LEVELSEED / BROWSER BUILD 1.0</span><span>Миры генерируются локально — без загрузки на сервер.</span></footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+  <script src="app.js" defer></script>
+</body>
+</html>
