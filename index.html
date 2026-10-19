@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#171b20">
-  <meta name="description" content="LevelSeed — генератор больших игровых карт с BSP, клеточным автоматом и Random Walk. Наблюдайте алгоритмы по шагам и экспортируйте уровни до 256 × 160 клеток.">
+  <meta name="description" content="LevelSeed — процедурный генератор игровых миров до 512 × 320 клеток. Создавайте уровни алгоритмами BSP, клеточным автоматом и Random Walk.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="LevelSeed — машина игровых миров">
   <meta property="og:description" content="Создавайте большие детерминированные уровни, наблюдайте за ходом алгоритмов и сохраняйте карты в PNG или JSON.">
@@ -112,7 +112,7 @@
         </div>
 
         <div class="field-group field-row">
-          <div><label class="field-label" for="sizeSelect">Размер карты</label><select id="sizeSelect"><option value="small">Малая · 22 × 15</option><option value="standard" selected>Стандартная · 28 × 18</option><option value="large">Большая · 64 × 40</option><option value="vast">Огромная · 96 × 64</option><option value="colossal">Колоссальная · 160 × 96</option><option value="giant">Гигантская · 256 × 160</option></select></div>
+          <div><label class="field-label" for="sizeSelect">Размер карты</label><select id="sizeSelect"><option value="small">Малая · 22 × 15</option><option value="standard" selected>Стандартная · 28 × 18</option><option value="large">Большая · 64 × 40</option><option value="vast">Огромная · 96 × 64</option><option value="colossal">Колоссальная · 160 × 96</option><option value="giant">Гигантская · 256 × 160</option><option value="epic">Эпическая · 384 × 240</option><option value="world">Мир · 512 × 320</option></select><p class="size-note" id="sizeNote" aria-live="polite">504 клетки</p></div>
           <div><label class="field-label" for="dangerSelect">Опасность</label><select id="dangerSelect"><option value="calm">Спокойно</option><option value="tense" selected>Напряжённо</option><option value="brutal">Жёстко</option></select></div>
         </div>
 

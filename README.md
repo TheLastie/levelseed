@@ -11,7 +11,8 @@ LevelSeed — браузерный генератор процедурных п�
 ### Возможности
 
 - Три детерминированных метода с пошаговой визуализацией и строками псевдокода: BSP, клеточный автомат и Random Walk.
-- Карты до 256 × 160 клеток (40 960 тайлов), масштабирование и прокрутка.
+- Восемь размеров карт от 22 × 15 до 512 × 320 клеток (163 840 тайлов), масштабирование и прокрутка.
+- Подпись выбранного размера показывает точное число клеток; отрисовка автоматически подбирает размер тайла для крупных миров.
 - Три биома, плотность, уровень опасности и несколько размеров.
 - Случайное новое зерно или ручной ввод своего.
 - Закладки в локальном хранилище браузера.
@@ -37,7 +38,8 @@ LevelSeed is a browser-based procedural pixel-dungeon generator. It helps you ma
 ### Features
 
 - Three deterministic generators with a step-by-step trace and highlighted pseudocode: BSP, cellular automaton, and Random Walk.
-- Maps up to 256 × 160 tiles (40,960 tiles) with zoom and scrolling.
+- Eight map sizes from 22 × 15 to 512 × 320 tiles (163,840 tiles), with zoom and scrolling.
+- The selected size displays its exact tile count; rendering adapts tile resolution for larger worlds.
 - Three biomes, density, danger, and several map sizes.
 - Generate a random seed or enter your own.
 - Save bookmarks in the browser's local storage.
@@ -58,4 +60,4 @@ Open `index.html` in a browser or serve this folder with any static HTTP server.
 
 ## Design idea
 
-The interface is a compact game-world instrument rather than a generic admin dashboard. Its seed field acts as the machine's input and the pixel map is the main artifact. Three different algorithms make the construction visible: partitioned rooms, a smoothed cave, and a branching walker trail. The trace panel highlights the matching pseudocode line as each map stage appears. The map can grow to 256 × 160 tiles and export as either an image or reusable JSON data.
+The interface is a compact game-world instrument rather than a generic admin dashboard. Its seed field acts as the machine's input and the pixel map is the main artifact. Three different algorithms make the construction visible: partitioned rooms, a smoothed cave, and a branching walker trail. The trace panel highlights the matching pseudocode line as each map stage appears. The size selector ranges from a small room to a 512 × 320 world; adaptive canvas resolution keeps the largest map practical to inspect and export as an image or reusable JSON data.

@@ -15,7 +15,7 @@
     foundry: { name: 'МЕДНАЯ КУЗНЯ', floor: '#665449', floorAlt: '#80634d', wall: '#342d2b', wallLight: '#49403b', trim: '#b87a45', hazard: '#ff6c48', relic: '#e6cb68', water: '#598d99' },
     glacier: { name: 'СИНИЙ РАЗЛОМ', floor: '#496170', floorAlt: '#587786', wall: '#273640', wallLight: '#344650', trim: '#73a2b8', hazard: '#eb8a62', relic: '#d7ef90', water: '#73b7c0' }
   };
-  const sizes = { small: [22, 15], standard: [28, 18], large: [64, 40], vast: [96, 64], colossal: [160, 96], giant: [256, 160] };
+  const sizes = { small: [22, 15], standard: [28, 18], large: [64, 40], vast: [96, 64], colossal: [160, 96], giant: [256, 160], epic: [384, 240], world: [512, 320] };
   const algorithms = {
     bsp: {
       title: 'Binary Space Partitioning',
@@ -524,6 +524,14 @@
     world.floorCount = floorCells.length;
   }
 
+  function tileWord(count) {
+    const lastTwo = count % 100;
+    const last = count % 10;
+    if (last === 1 && lastTwo !== 11) return 'клетка';
+    if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return 'клетки';
+    return 'клеток';
+  }
+
   function generateWorld() {
     if (traceTimer) { clearInterval(traceTimer); traceTimer = null; }
     const seed = (seedInput.value.trim() || makeSeed()).slice(0, 20);
@@ -554,7 +562,7 @@
 
   function renderWorld(world) {
     const palette = colors[world.biome];
-    const cell = 18;
+    const cell = Math.max(4, Math.min(18, Math.floor(Math.sqrt(3000000 / (world.cols * world.rows)))));
     canvas.width = world.cols * cell;
     canvas.height = world.rows * cell;
     const zoom = Number($('#zoomSlider').value);
@@ -610,6 +618,8 @@
     $('#dangerCount').textContent = (world.hazards || []).length;
     $('#biomeReadout').textContent = palette.name;
     $('#sizeReadout').textContent = `${world.cols} × ${world.rows}`;
+    const tileCount = world.cols * world.rows;
+    $('#sizeNote').textContent = `${tileCount.toLocaleString('ru-RU')} ${tileWord(tileCount)}`;
     $('#levelNumber').textContent = `МИР ${String(levelNumber).padStart(3, '0')}`;
     canvas.setAttribute('aria-label', `Карта ${palette.name.toLowerCase()}, алгоритм ${algorithms[world.algorithm].title}, зерно ${world.seed}`);
   }

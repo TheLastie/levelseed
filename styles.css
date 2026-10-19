@@ -133,6 +133,7 @@ select option { background: #20262b; color: #e2e6e0; }
 .range-captions { display: flex; justify-content: space-between; margin-top: 5px; color: #727e83; font-size: 7px; letter-spacing: .04em; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 .field-row .field-group { border-top: 0; }
+.size-note { margin: 6px 0 0; color: #78858a; font: 8px/1.4 var(--mono); }
 .generate-button { width: 100%; min-height: 47px; margin-top: 18px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border: 0; background: var(--acid); color: var(--acid-ink); cursor: pointer; font-size: 10px; font-weight: 800; letter-spacing: .045em; transition: background .15s, transform .15s; }
 .generate-button:hover { background: #e2ff83; transform: translateY(-1px); }
 .generate-glyph { font-size: 18px; line-height: 1; }
