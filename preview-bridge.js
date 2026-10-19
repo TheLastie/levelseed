@@ -14,7 +14,10 @@
   };
   const schedule = () => { if (!frame) frame = requestAnimationFrame(report); };
   window.addEventListener('message', event => {
-    if (event.source === window.parent && event.data?.type === 'lastie:request-preview-size') schedule();
+    if (event.source === window.parent && event.data?.type === 'lastie:request-preview-size') {
+      lastHeight = 0;
+      schedule();
+    }
   });
   const observer = new ResizeObserver(schedule);
   observer.observe(root);
