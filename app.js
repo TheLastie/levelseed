@@ -326,6 +326,34 @@
     showToast('Карта скачана в PNG.');
   }
 
+  function exportForPathlab() {
+    if (!currentWorld || currentWorld.cols > 64 || currentWorld.rows > 40) {
+      showToast('Для проверки маршрута выбери карту не больше 64 × 40 клеток.');
+      return;
+    }
+    const payload = {
+      format: 'levelseed-map-v1',
+      title: `Уровень ${currentWorld.seed}`,
+      seed: currentWorld.seed,
+      biome: currentWorld.biome,
+      algorithm: currentWorld.algorithm,
+      columns: currentWorld.cols,
+      rows: currentWorld.rows,
+      tiles: currentWorld.tiles,
+      start: currentWorld.start,
+      finish: currentWorld.exit,
+      hazards: currentWorld.hazards,
+      relics: currentWorld.relics
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `levelseed-${currentWorld.seed.toLowerCase()}-pathlab.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Карта готова для проверки маршрута в PATHLAB.');
+  }
+
   function wireEvents() {
     $('#generateButton').addEventListener('click', generateWorld);
     $('#randomSeed').addEventListener('click', () => { seedInput.value = makeSeed(); generateWorld(); });
@@ -547,6 +575,9 @@
     snapshot(trace, `${String(trace.length + 1).padStart(2, '0')} · ФИНИШ`, meta.stages[meta.stages.length - 1][1], meta.stages.length - 1, world.tiles);
     world.trace = trace;
     currentWorld = world;
+    const pathlabExportButton = $('#pathlabExportButton');
+    pathlabExportButton.disabled = world.cols > 64 || world.rows > 40;
+    pathlabExportButton.title = pathlabExportButton.disabled ? 'PATHLAB поддерживает карты до 64 × 40 клеток' : 'Передать карту в PATHLAB';
     levelNumber++;
     world.level = levelNumber;
     window.dispatchEvent(new CustomEvent('levelseed:world-generated', { detail: { world } }));
@@ -706,6 +737,7 @@
     $('#shareButton').addEventListener('click', copyShareLink);
     $('#downloadButton').addEventListener('click', downloadMap);
     $('#jsonButton').addEventListener('click', downloadWorldJson);
+    $('#pathlabExportButton').addEventListener('click', exportForPathlab);
     $('#traceReplay').addEventListener('click', playTrace);
     $('#traceNext').addEventListener('click', () => {
       if (traceTimer) { clearInterval(traceTimer); traceTimer = null; }

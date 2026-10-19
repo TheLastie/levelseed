@@ -67,3 +67,9 @@ Open `index.html` in a browser or serve this folder with any static HTTP server.
 ## Design idea
 
 The interface is a compact game-world instrument rather than a generic admin dashboard. Its seed field acts as the machine's input and the pixel map is the main artifact. Three different algorithms make the construction visible: partitioned rooms, a smoothed cave, and a branching walker trail. The trace panel highlights the matching pseudocode line as each map stage appears. The size selector ranges from a small room to a 512 × 320 world; adaptive canvas resolution keeps the largest map practical to inspect and export. The Play mode turns that exact map into a small expedition: the player, enemies, hazards, relics, and boss all occupy the generated floor plan, making the algorithm's result directly playable.
+
+## Проверка игрового маршрута · Route validation
+
+Карты до 64 × 40 клеток можно выгрузить в формате LevelSeed JSON и открыть в PATHLAB. Там проверяется достижимость выхода, ловушки учитываются как дорогой рельеф, а найденный маршрут экспортируется вместе с сеткой для дальнейшего прототипирования.
+
+For maps up to 64 × 40 cells, export the LevelSeed JSON and open it in PATHLAB. It checks whether the exit is reachable, treats traps as costly terrain, and exports the tested route with the grid for a game prototype.
