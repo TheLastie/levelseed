@@ -1,8 +1,10 @@
 # LevelSeed
 
-**A machine for growing repeatable worlds.** LevelSeed creates deterministic pixel dungeon maps from a seed. Choose how the world is built, watch the algorithm work, then keep the seed to return to exactly the same map.
+**A machine for growing repeatable worlds.** LevelSeed creates deterministic pixel dungeon maps from a seed, then lets you enter the same map, fight its inhabitants, and break the seal guarded by its boss.
 
 ![LevelSeed generator screenshot](screenshots/levelseed.png)
+
+![LevelSeed gameplay screenshot](screenshots/levelseed-gameplay.png)
 
 ## Русский
 
@@ -17,6 +19,8 @@ LevelSeed — браузерный генератор процедурных п�
 - Случайное новое зерно или ручной ввод своего.
 - Закладки в локальном хранилище браузера.
 - Ссылка с параметрами текущего мира, экспорт изображения в PNG и сетки в JSON.
+- Кнопка «Играть» открывает созданный мир: исследуйте проходы, собирайте реликвии, сражайтесь с тремя типами противников и победите Стража разлома.
+- Управление клавиатурой и сенсорной крестовиной; после победы над боссом разблокируется выход и доступен следующий случайный мир.
 - Генерация работает локально в браузере; сервер не нужен.
 
 ### Как устроены алгоритмы
@@ -44,6 +48,8 @@ LevelSeed is a browser-based procedural pixel-dungeon generator. It helps you ma
 - Generate a random seed or enter your own.
 - Save bookmarks in the browser's local storage.
 - Share a URL containing the current world settings, export a PNG image, or export the tile grid as JSON.
+- Enter the generated map, collect relics, fight three enemy types, and defeat the Rift Warden to unlock the exit.
+- Move with WASD, the arrow keys, or the touch D-pad; start another generated world after winning.
 - Everything runs locally in the browser; no server is required.
 
 ### How the algorithms work
@@ -60,4 +66,4 @@ Open `index.html` in a browser or serve this folder with any static HTTP server.
 
 ## Design idea
 
-The interface is a compact game-world instrument rather than a generic admin dashboard. Its seed field acts as the machine's input and the pixel map is the main artifact. Three different algorithms make the construction visible: partitioned rooms, a smoothed cave, and a branching walker trail. The trace panel highlights the matching pseudocode line as each map stage appears. The size selector ranges from a small room to a 512 × 320 world; adaptive canvas resolution keeps the largest map practical to inspect and export as an image or reusable JSON data.
+The interface is a compact game-world instrument rather than a generic admin dashboard. Its seed field acts as the machine's input and the pixel map is the main artifact. Three different algorithms make the construction visible: partitioned rooms, a smoothed cave, and a branching walker trail. The trace panel highlights the matching pseudocode line as each map stage appears. The size selector ranges from a small room to a 512 × 320 world; adaptive canvas resolution keeps the largest map practical to inspect and export. The Play mode turns that exact map into a small expedition: the player, enemies, hazards, relics, and boss all occupy the generated floor plan, making the algorithm's result directly playable.
