@@ -329,6 +329,7 @@
   function wireEvents() {
     $('#generateButton').addEventListener('click', generateWorld);
     $('#randomSeed').addEventListener('click', () => { seedInput.value = makeSeed(); generateWorld(); });
+    window.addEventListener('levelseed:new-level', () => { seedInput.value = makeSeed(); generateWorld(); });
     $('#favoriteButton').addEventListener('click', toggleFavorite);
     $('#shareButton').addEventListener('click', copyShareLink);
     $('#downloadButton').addEventListener('click', downloadMap);
@@ -547,6 +548,8 @@
     world.trace = trace;
     currentWorld = world;
     levelNumber++;
+    world.level = levelNumber;
+    window.dispatchEvent(new CustomEvent('levelseed:world-generated', { detail: { world } }));
     $('#traceTitle').textContent = meta.title;
     renderAlgorithmCode(algorithm);
     traceIndex = 0;

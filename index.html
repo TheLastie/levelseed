@@ -3,9 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#171b20">
-  <meta name="description" content="LevelSeed — процедурный генератор игровых миров до 512 × 320 клеток. Создавайте уровни алгоритмами BSP, клеточным автоматом и Random Walk.">
+  <link rel="canonical" href="https://thelastie.github.io/levelseed/">
+  <meta name="theme-color" content="#eee7d8">
+  <meta name="description" content="LevelSeed — процедурный генератор и браузерная игра. Создавайте миры до 512 × 320 клеток, исследуйте подземелья, сражайтесь с врагами и боссом.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://thelastie.github.io/levelseed/">
   <meta property="og:title" content="LevelSeed — машина игровых миров">
   <meta property="og:description" content="Создавайте большие детерминированные уровни, наблюдайте за ходом алгоритмов и сохраняйте карты в PNG или JSON.">
   <meta property="og:locale" content="ru_RU">
@@ -13,6 +15,7 @@
   <title>LevelSeed — машина игровых миров</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23171b20'/%3E%3Cpath d='M16 5v22M5 16h22M8 8l16 16M24 8 8 24' stroke='%23d6f36a' stroke-width='3'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="atelier.css">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -21,7 +24,7 @@
     "applicationCategory": "GameApplication",
     "operatingSystem": "Any",
     "inLanguage": ["ru", "en"],
-    "description": "A browser-based procedural map generator with BSP, cellular automata, random walk, and step-by-step algorithm visualization."
+    "description": "A browser-based procedural world generator and playable pixel dungeon with BSP, cellular automata, random walk, enemies, relics, and a boss."
   }
   </script>
 </head>
@@ -55,6 +58,7 @@
         <div class="section-heading">
           <div><p class="micro-label">ТЕКУЩИЙ РЕЗУЛЬТАТ</p><h2>Карта уровня</h2></div>
           <div class="map-actions">
+            <button class="play-button" id="playButton" type="button"><span aria-hidden="true">▶</span> Играть</button>
             <button class="icon-button" id="favoriteButton" type="button" aria-label="Добавить в избранное" title="В избранное"><span class="star-icon">☆</span></button>
             <button class="icon-button" id="downloadButton" type="button" aria-label="Скачать карту в PNG" title="Скачать PNG"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m0 0 4-4m-4 4L6 8M3 13v4h14v-4"/></svg></button>
             <button class="icon-button" id="jsonButton" type="button" aria-label="Экспортировать данные уровня в JSON" title="Экспорт JSON"><span class="json-icon">{ }</span></button>
@@ -126,9 +130,51 @@
       </aside>
     </section>
     <footer class="page-footer"><span>LEVELSEED / BROWSER BUILD 1.0</span><span>Миры генерируются локально — без загрузки на сервер.</span></footer>
+    <dialog class="play-dialog" id="playDialog" aria-labelledby="playTitle">
+      <div class="play-room">
+        <header class="play-head">
+          <div><span class="play-kicker" id="playWorldLabel">FIELD TEST / WORLD 001</span><h2 id="playTitle">Выход за печатью</h2><p>Соберите реликвии, отбейте натиск и доберитесь до Стража разлома.</p></div>
+          <button class="play-close" id="closePlay" type="button" aria-label="Выйти из игры">×</button>
+        </header>
+        <div class="play-hud" aria-label="Состояние экспедиции">
+          <div class="play-stat"><small>ЗДОРОВЬЕ</small><div class="health-track" id="gameHealth" role="meter" aria-label="Здоровье игрока"></div><strong id="gameHealthValue">10 / 10</strong></div>
+          <div class="play-stat"><small>ПРОТИВНИКИ</small><strong id="gameEnemyValue">0</strong></div>
+          <div class="play-stat"><small>РЕЛИКВИИ</small><strong id="gameRelicValue">0 / 0</strong></div>
+          <div class="play-stat"><small>ВЫХОД</small><strong id="gameGateValue">ЗАКРЫТ</strong></div>
+        </div>
+        <div class="play-stage" id="gameStage" tabindex="-1">
+          <canvas id="gameCanvas" role="img" aria-label="Игровое поле; двигайтесь стрелками или WASD"></canvas>
+          <div class="boss-readout" id="bossReadout">
+            <div class="boss-line"><span>Страж разлома</span><span id="bossHpValue">8 / 8</span></div>
+            <div class="boss-track"><i id="bossHpFill"></i></div>
+          </div>
+          <div class="play-overlay" id="gameOverlay" hidden>
+            <span class="play-kicker" id="gameResultKicker">EXPEDITION LOG / 01</span>
+            <h3 id="gameResultTitle"></h3>
+            <p id="gameResultText"></p>
+            <button id="gameRestart" type="button">Начать заново</button>
+            <button class="play-secondary" id="gameNewLevel" type="button" hidden>Следующий уровень</button>
+          </div>
+        </div>
+        <footer class="play-footer">
+          <p class="game-message" id="gameMessage" role="status" aria-live="polite">Найдите проход к выходу. Страж охраняет печать.</p>
+          <div class="play-controls">
+            <span class="play-controls-hint">WASD / СТРЕЛКИ — ДВИЖЕНИЕ<br>ПРОБЕЛ — УДАР</span>
+            <div class="play-pad" role="group" aria-label="Управление движением">
+              <button type="button" data-game-move="up" aria-label="Двигаться вверх">↑</button>
+              <button type="button" data-game-move="left" aria-label="Двигаться влево">←</button>
+              <button type="button" data-game-move="down" aria-label="Двигаться вниз">↓</button>
+              <button type="button" data-game-move="right" aria-label="Двигаться вправо">→</button>
+            </div>
+            <button class="game-attack" id="gameAttack" type="button">Удар<br><span aria-hidden="true">✦</span></button>
+          </div>
+        </footer>
+      </div>
+    </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
   <script src="preview-bridge.js" defer></script>
+  <script src="play-mode.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>
