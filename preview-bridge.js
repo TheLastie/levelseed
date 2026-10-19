@@ -16,7 +16,8 @@
   window.addEventListener('message', event => {
     if (event.source === window.parent && event.data?.type === 'lastie:request-preview-size') {
       lastHeight = 0;
-      schedule();
+      frame = 0;
+      report();
     }
   });
   const observer = new ResizeObserver(schedule);
