@@ -13,6 +13,9 @@
     window.parent.postMessage({ type: 'lastie:preview-size', height }, '*');
   };
   const schedule = () => { if (!frame) frame = requestAnimationFrame(report); };
+  window.addEventListener('message', event => {
+    if (event.source === window.parent && event.data?.type === 'lastie:request-preview-size') schedule();
+  });
   const observer = new ResizeObserver(schedule);
   observer.observe(root);
   if (document.body) observer.observe(document.body);
