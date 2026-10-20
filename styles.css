@@ -246,8 +246,9 @@ select option { background: #20262b; color: #e2e6e0; }
   .intro { display: block; padding: 34px 12px 28px; min-height: auto; }
   h1 { font-size: clamp(47px, 15vw, 68px); }
   .intro-text { max-width: 360px; font-size: 12px; margin-top: 14px; }
-  .intro-art { position: absolute; width: 170px; height: 165px; right: -34px; bottom: -32px; opacity: .48; transform: scale(.75) rotate(-12deg); }
+  .intro-art { position: absolute; width: 170px; height: 165px; right: -3px; bottom: -32px; opacity: .48; transform: scale(.75) rotate(-12deg); }
   .orbit-one { width: 200px; }.orbit-two { width: 190px; }
+  .map-actions { gap: 5px; }
   .map-side { padding: 20px 13px 18px; }
   .section-heading h2, .control-head h2 { font-size: 16px; }
   .canvas-wrap { padding: 1px 5px; }
@@ -263,3 +264,10 @@ select option { background: #20262b; color: #e2e6e0; }
   .page-footer { padding: 13px 2px; align-items: flex-start; flex-direction: column; gap: 7px; line-height: 1.5; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+@media (max-width: 360px) {
+  .machine { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  .map-side, .control-side { min-width: 0; }
+  .section-heading, .control-head { min-width: 0; flex-wrap: wrap; gap: 10px; }
+  .map-actions { max-width: 100%; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+}
