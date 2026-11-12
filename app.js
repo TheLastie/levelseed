@@ -108,142 +108,10 @@
     else { carveVertical(b.cy); carveHorizontal(b.cx); }
   }
 
-  function generateWorld() {
-    const seed = (seedInput.value.trim() || makeSeed()).slice(0, 20);
-    seedInput.value = seed;
-    const [cols, rows] = sizes[sizeSelect.value];
-    const rng = seededRandom(`${seed}|${biomeSelect.value}|${sizeSelect.value}|${densitySlider.value}|${dangerSelect.value}`);
-    const tiles = Array.from({ length: rows }, () => Array(cols).fill(0));
-    const world = { seed, cols, rows, tiles, rooms: [], hazards: [], relics: [], start: null, exit: null, biome: biomeSelect.value };
-    const roomTarget = Number(densitySlider.value);
-    for (let attempt = 0; attempt < roomTarget * 80 && world.rooms.length < roomTarget; attempt++) {
-      const room = makeRoom(rng, cols, rows, roomTarget);
-      if (world.rooms.some((other) => intersects(room, other))) continue;
-      for (let y = room.y; y < room.y + room.h; y++) for (let x = room.x; x < room.x + room.w; x++) carve(world, x, y);
-      if (world.rooms.length) connectRooms(world, world.rooms[world.rooms.length - 1], room, rng);
-      world.rooms.push(room);
-    }
-    if (world.rooms.length < 2) {
-      world.rooms = [];
-      for (let i = 0; i < 3; i++) {
-        const room = { x: 2 + i * Math.floor((cols - 9) / 3), y: 2 + (i % 2) * Math.floor((rows - 7) / 2), w: 5, h: 4 };
-        room.cx = room.x + 2; room.cy = room.y + 1;
-        for (let y = room.y; y < room.y + room.h; y++) for (let x = room.x; x < room.x + room.w; x++) carve(world, x, y);
-        if (world.rooms.length) connectRooms(world, world.rooms[world.rooms.length - 1], room, rng);
-        world.rooms.push(room);
-      }
-    }
-    world.start = { x: world.rooms[0].cx, y: world.rooms[0].cy };
-    let farthest = world.rooms[1];
-    for (const room of world.rooms.slice(1)) {
-      const d = Math.abs(room.cx - world.start.x) + Math.abs(room.cy - world.start.y);
-      const current = Math.abs(farthest.cx - world.start.x) + Math.abs(farthest.cy - world.start.y);
-      if (d > current) farthest = room;
-    }
-    world.exit = { x: farthest.cx, y: farthest.cy };
-
-    const floorCells = [];
-    for (let y = 1; y < rows - 1; y++) for (let x = 1; x < cols - 1; x++) if (tiles[y][x] === 1 && !(x === world.start.x && y === world.start.y) && !(x === world.exit.x && y === world.exit.y)) floorCells.push({ x, y });
-    for (let i = floorCells.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [floorCells[i], floorCells[j]] = [floorCells[j], floorCells[i]]; }
-    const hazardCount = Math.max(2, Math.round(floorCells.length * difficulty[dangerSelect.value]));
-    for (let i = 0; i < hazardCount && i < floorCells.length; i++) world.hazards.push(floorCells[i]);
-    const relicCount = Math.min(5, Math.max(2, Math.floor(world.rooms.length / 3)));
-    for (let i = hazardCount; i < hazardCount + relicCount && i < floorCells.length; i++) world.relics.push(floorCells[i]);
-
-    currentWorld = world;
-    levelNumber++;
-    renderWorld(world, rng);
-    syncFavoriteButton();
-    updateUrl();
-  }
-
-  function renderWorld(world, rng) {
-    const palette = colors[world.biome];
-    const cell = 22;
-    canvas.width = world.cols * cell;
-    canvas.height = world.rows * cell;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#121619';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const hazardSet = new Set(world.hazards.map((p) => `${p.x},${p.y}`));
-    const relicSet = new Set(world.relics.map((p) => `${p.x},${p.y}`));
-    const exitSet = `${world.exit.x},${world.exit.y}`;
-    const startSet = `${world.start.x},${world.start.y}`;
-
-    for (let y = 0; y < world.rows; y++) for (let x = 0; x < world.cols; x++) {
-      const px = x * cell;
-      const py = y * cell;
-      const key = `${x},${y}`;
-      if (!world.tiles[y][x]) {
-        ctx.fillStyle = palette.wall;
-        ctx.fillRect(px, py, cell, cell);
-        ctx.fillStyle = palette.wallLight;
-        if (rng() > 0.67) ctx.fillRect(px + 3, py + 3, cell - 6, 2);
-        if (rng() > 0.8) ctx.fillRect(px + 3, py + 7, 2, 8);
-        ctx.strokeStyle = '#101519'; ctx.lineWidth = 1; ctx.strokeRect(px + .5, py + .5, cell - 1, cell - 1);
-        continue;
-      }
-      ctx.fillStyle = rng() > .78 ? palette.floorAlt : palette.floor;
-      ctx.fillRect(px, py, cell, cell);
-      ctx.strokeStyle = '#19232930'; ctx.lineWidth = 1; ctx.strokeRect(px + .5, py + .5, cell - 1, cell - 1);
-      if (rng() > .83) {
-        ctx.fillStyle = palette.trim + '88';
-        ctx.fillRect(px + 6 + Math.floor(rng() * 6), py + 6 + Math.floor(rng() * 6), 3, 3);
-      }
-      if (hazardSet.has(key)) {
-        ctx.fillStyle = palette.hazard + '45'; ctx.fillRect(px + 2, py + 2, cell - 4, cell - 4);
-        ctx.fillStyle = palette.hazard; ctx.beginPath(); ctx.moveTo(px + cell / 2, py + 5); ctx.lineTo(px + cell - 5, py + cell / 2); ctx.lineTo(px + cell / 2, py + cell - 5); ctx.lineTo(px + 5, py + cell / 2); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#25231e'; ctx.fillRect(px + 9, py + 8, 4, 6);
-      } else if (relicSet.has(key)) {
-        ctx.fillStyle = palette.relic + '36'; ctx.beginPath(); ctx.arc(px + 11, py + 11, 8, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = palette.relic; ctx.beginPath(); ctx.moveTo(px + 11, py + 5); ctx.lineTo(px + 16, py + 11); ctx.lineTo(px + 11, py + 17); ctx.lineTo(px + 6, py + 11); ctx.closePath(); ctx.fill();
-      }
-      if (key === exitSet) {
-        ctx.fillStyle = '#70d2ef2b'; ctx.fillRect(px + 1, py + 1, cell - 2, cell - 2);
-        ctx.strokeStyle = '#8be3fb'; ctx.lineWidth = 2; ctx.strokeRect(px + 4, py + 4, cell - 8, cell - 8);
-        ctx.fillStyle = '#8be3fb'; ctx.fillRect(px + 8, py + 8, 6, 6);
-      }
-      if (key === startSet) {
-        ctx.fillStyle = '#d6f36a35'; ctx.fillRect(px + 1, py + 1, cell - 2, cell - 2);
-        ctx.fillStyle = palette.relic; ctx.beginPath(); ctx.arc(px + 11, py + 11, 6, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#293320'; ctx.beginPath(); ctx.arc(px + 11, py + 11, 2, 0, Math.PI * 2); ctx.fill();
-      }
-    }
-    $('#roomCount').textContent = world.rooms.length;
-    $('#relicCount').textContent = world.relics.length;
-    $('#dangerCount').textContent = world.hazards.length;
-    $('#biomeReadout').textContent = palette.name;
-    $('#sizeReadout').textContent = `${world.cols} × ${world.rows}`;
-    $('#levelNumber').textContent = `МИР ${String(levelNumber).padStart(3, '0')}`;
-    canvas.setAttribute('aria-label', `Карта ${palette.name.toLowerCase()}, зерно ${world.seed}, ${world.rooms.length} комнат`);
-  }
-
-  function updateDensity() {
-    densityValue.value = densitySlider.value;
-    densityValue.textContent = densitySlider.value;
-    const min = Number(densitySlider.min), max = Number(densitySlider.max);
-    const progress = ((Number(densitySlider.value) - min) / (max - min)) * 100;
-    densitySlider.style.setProperty('--range-progress', `${progress}%`);
-  }
-
-  function paramsForWorld(world = currentWorld) {
-    if (!world) return {};
-    return { seed: world.seed, biome: world.biome, size: sizeSelect.value, density: densitySlider.value, danger: dangerSelect.value };
-  }
-
   function updateUrl() {
     const url = new URL(window.location.href);
     for (const [key, value] of Object.entries(paramsForWorld())) url.searchParams.set(key, value);
     history.replaceState({}, '', url);
-  }
-
-  function setFromUrl() {
-    const params = new URLSearchParams(location.search);
-    if (params.has('seed')) seedInput.value = params.get('seed').slice(0, 20);
-    if (colors[params.get('biome')]) biomeSelect.value = params.get('biome');
-    if (sizes[params.get('size')]) sizeSelect.value = params.get('size');
-    if (params.has('density')) densitySlider.value = String(Math.min(15, Math.max(5, Number(params.get('density')) || 9)));
-    if (difficulty[params.get('danger')]) dangerSelect.value = params.get('danger');
   }
 
   function showToast(message) {
@@ -318,14 +186,6 @@
     catch { showToast('Скопируй адрес страницы из строки браузера.'); }
   }
 
-  function downloadMap() {
-    const anchor = document.createElement('a');
-    anchor.download = `levelseed-${currentWorld.seed.toLowerCase()}.png`;
-    anchor.href = canvas.toDataURL('image/png');
-    anchor.click();
-    showToast('Карта скачана в PNG.');
-  }
-
   function exportForPathlab() {
     if (!currentWorld || currentWorld.cols > 64 || currentWorld.rows > 40) {
       showToast('Для проверки маршрута выбери карту не больше 64 × 40 клеток.');
@@ -352,25 +212,6 @@
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('Карта готова для проверки маршрута в PATHLAB.');
-  }
-
-  function wireEvents() {
-    $('#generateButton').addEventListener('click', generateWorld);
-    $('#randomSeed').addEventListener('click', () => { seedInput.value = makeSeed(); generateWorld(); });
-    window.addEventListener('levelseed:new-level', () => { seedInput.value = makeSeed(); generateWorld(); });
-    $('#favoriteButton').addEventListener('click', toggleFavorite);
-    $('#shareButton').addEventListener('click', copyShareLink);
-    $('#downloadButton').addEventListener('click', downloadMap);
-    seedInput.addEventListener('change', () => { if (seedInput.value.trim()) generateWorld(); });
-    densitySlider.addEventListener('input', updateDensity);
-    densitySlider.addEventListener('change', generateWorld);
-    for (const select of [biomeSelect, sizeSelect, dangerSelect]) select.addEventListener('change', generateWorld);
-    document.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter') return;
-      if (event.target === seedInput) { event.preventDefault(); generateWorld(); return; }
-      if (event.target instanceof HTMLButtonElement || event.target instanceof HTMLSelectElement) return;
-      generateWorld();
-    });
   }
 
   function cloneGrid(grid) { return grid.map((row) => row.slice()); }
@@ -733,6 +574,7 @@
   function wireEvents() {
     $('#generateButton').addEventListener('click', generateWorld);
     $('#randomSeed').addEventListener('click', () => { seedInput.value = makeSeed(); generateWorld(); });
+    window.addEventListener('levelseed:new-level', () => { seedInput.value = makeSeed(); generateWorld(); });
     $('#favoriteButton').addEventListener('click', toggleFavorite);
     $('#shareButton').addEventListener('click', copyShareLink);
     $('#downloadButton').addEventListener('click', downloadMap);
@@ -760,7 +602,7 @@
 
   function downloadWorldJson() {
     const payload = {
-      format: 'levelseed-map-v1', seed: currentWorld.seed, algorithm: currentWorld.algorithm, biome: currentWorld.biome,
+      format: 'levelseed-world-v1', seed: currentWorld.seed, algorithm: currentWorld.algorithm, biome: currentWorld.biome,
       width: currentWorld.cols, height: currentWorld.rows,
       legend: { 0: 'wall', 1: 'floor', 2: 'partition' }, tiles: currentWorld.tiles,
       entrance: currentWorld.start, exit: currentWorld.exit, rooms: currentWorld.rooms,
